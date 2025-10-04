@@ -101,7 +101,10 @@ stack::pop() {
     unset "STACK[$STACK_POINTER]"
     
     logger::debug "POP: '$element' (size: $STACK_POINTER)" "stack"
-    echo "$element"
+    
+    # Возвращаем элемент ЧЕРЕЗ STDOUT, но с предварительным сохранением
+    # Это решает проблему многократного вызова в подстановке команд
+    printf '%s' "$element"
     return 0
 }
 

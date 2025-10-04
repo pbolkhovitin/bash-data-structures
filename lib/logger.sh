@@ -1,13 +1,21 @@
 #!/bin/bash
-# Унифицированное логирование с:
-# - Уровнями логирования (DEBUG, INFO, WARN, ERROR)
-# - Ротацией логов
-# - Цветовым выводом
-# - JSON-форматированием для машинного чтения#!/bin/bash
 
 # logger.sh - Унифицированная система логирования для Bash Data Structures
 
-readonly LOG_DIR="${LOG_DIR:-/var/log/bash-ds}"
+# Используем временную директорию по умолчанию, если системная недоступна
+DEFAULT_LOG_DIR="/tmp/bash-ds-logs"
+SYSTEM_LOG_DIR="/var/log/bash-ds"
+
+# Пробуем использовать системную директорию, если доступна
+if [[ -w "$SYSTEM_LOG_DIR" ]] || mkdir -p "$SYSTEM_LOG_DIR" 2>/dev/null; then
+    readonly LOG_DIR="${LOG_DIR:-$SYSTEM_LOG_DIR}"
+else
+    readonly LOG_DIR="${LOG_DIR:-$DEFAULT_LOG_DIR}"
+    mkdir -p "$LOG_DIR" 2>/dev/null || {
+        echo "Warning: Cannot create log directory $LOG_DIR" >&2
+    }
+fi
+
 readonly MAX_LOG_SIZE=${MAX_LOG_SIZE:-1048576}  # 1MB
 readonly MAX_LOG_FILES=${MAX_LOG_FILES:-5}
 

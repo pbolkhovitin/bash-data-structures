@@ -1,12 +1,32 @@
 #!/bin/bash
 
 # stack.sh - Чистая реализация стека (LIFO) для Bash Data Structures
-# Соответствует архитектуре проекта и использует единый API
 
-# Загрузка библиотек
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/logger.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/validator.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/formatter.sh"
+# Определение абсолютных путей
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Загрузка библиотек с проверками
+load_library() {
+    local lib_file="${PROJECT_ROOT}/lib/$1"
+    
+    if [[ ! -f "$lib_file" ]]; then
+        echo "Error: Library file not found: $lib_file" >&2
+        return 1
+    fi
+    
+    source "$lib_file" || {
+        echo "Error: Failed to load library: $lib_file" >&2
+        return 1
+    }
+    
+    return 0
+}
+
+# Загружаем библиотеки
+load_library "logger.sh" || exit 1
+load_library "validator.sh" || exit 1  
+load_library "formatter.sh" || exit 1
 
 # Глобальные переменные стека
 declare -a STACK

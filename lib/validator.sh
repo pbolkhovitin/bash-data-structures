@@ -1,162 +1,152 @@
 #!/bin/bash
 
-# formatter.sh - Утилиты форматирования вывода для Bash Data Structures
+# validator.sh - Валидация входных данных для Bash Data Structures
 
-# Форматирование вывода в таблицу
-formatter::table() {
-    local headers=("$@")
-    local data=()
-    local column_widths=()
-    local IFS=$'\n'
+# Проверка что значение не пустое
+validator::not_empty() {
+    local value="$1"
+    local field_name="${2:-value}"
     
-    # Читаем данные из stdin
-    while read -r line; do
-        data+=("$line")
-    done
+    if [[ -z "$value" ]]; then
+        echo "Error: $field_name cannot be empty" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка что значение является числом
+validator::is_number() {
+    local value="$1"
+    local field_name="${2:-value}"
     
-    if [[ ${#data[@]} -eq 0 ]]; then
-        echo "No data to display"
+    if ! [[ "$value" =~ ^-?[0-9]+$ ]]; then
+        echo "Error: $field_name must be a number" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка что значение является положительным числом
+validator::is_positive_number() {
+    local value="$1"
+    local field_name="${2:-value}"
+    
+    if ! validator::is_number "$value" "$field_name"; then
         return 1
     fi
     
-    # Определяем ширину колонок
-    for ((i=0; i<${#headers[@]}; i++)); do
-        local max_length=${#headers[i]}
-        for row in "${data[@]}"; do
-            IFS=$'\t' read -ra fields <<< "$row"
-            if [[ ${#fields[i]} -gt $max_length ]]; then
-                max_length=${#fields[i]}
-            fi
-        done
-        column_widths[i]=$((max_length + 2))
-    done
-    
-    # Вывод заголовков
-    for ((i=0; i<${#headers[@]}; i++)); do
-        printf "%-${column_widths[i]}s" "${headers[i]}"
-    done
-    echo
-    
-    # Разделитель
-    for width in "${column_widths[@]}"; do
-        printf "%${width}s" | tr ' ' '-'
-    done
-    echo
-    
-    # Вывод данных
-    for row in "${data[@]}"; do
-        IFS=$'\t' read -ra fields <<< "$row"
-        for ((i=0; i<${#fields[@]}; i++)); do
-            printf "%-${column_widths[i]}s" "${fields[i]}"
-        done
-        echo
-    done
+    if [[ $value -lt 0 ]]; then
+        echo "Error: $field_name must be positive" >&2
+        return 1
+    fi
+    return 0
 }
 
-# Форматирование в JSON
-formatter::json() {
-    local type="$1"
-    shift
+# Проверка индекса в пределах массива
+validator::valid_index() {
+    local index="$1"
+    local array_size="$2"
+    local array_name="${3:-array}"
     
-    case "$type" in
-        "stack")
-            local stack_array=("$@")
-            local json='{"type": "stack", "data": ['
-            for ((i=0; i<${#stack_array[@]}; i++)); do
-                if [[ $i -gt 0 ]]; then
-                    json+=','
-                fi
-                local escaped=$(printf '%s' "${stack_array[i]}" | sed 's/"/\\"/g')
-                json+="\"$escaped\""
-            done
-            json+=']}'
-            echo "$json"
+    if ! validator::is_number "$index" "Index"; then
+        return 1
+    fi
+    
+    if [[ $index -lt 0 || $index -ge $array_size ]]; then
+        echo "Error: Index $index out of bounds for $array_name (size: $array_size)" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка что файл существует
+validator::file_exists() {
+    local file_path="$1"
+    
+    if [[ ! -f "$file_path" ]]; then
+        echo "Error: File '$file_path' does not exist" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка что файл доступен для чтения
+validator::file_readable() {
+    local file_path="$1"
+    
+    if ! validator::file_exists "$file_path"; then
+        return 1
+    fi
+    
+    if [[ ! -r "$file_path" ]]; then
+        echo "Error: File '$file_path' is not readable" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка валидности JSON
+validator::is_valid_json() {
+    local json_string="$1"
+    
+    if ! echo "$json_string" | python3 -m json.tool >/dev/null 2>&1; then
+        echo "Error: Invalid JSON format" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка что команда существует
+validator::command_exists() {
+    local command_name="$1"
+    
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        echo "Error: Command '$command_name' not found" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Проверка версии Bash
+validator::bash_version() {
+    local required_version="$1"
+    
+    if [[ ${BASH_VERSINFO[0]} -lt $required_version ]]; then
+        echo "Error: Bash version $required_version+ required (current: ${BASH_VERSION})" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Комплексная валидация параметров структуры данных
+validator::data_structure_params() {
+    local operation="$1"
+    local element="$2"
+    local index="$3"
+    local size="$4"
+    
+    case "$operation" in
+        "push"|"enqueue")
+            validator::not_empty "$element" "Element"
             ;;
-        "queue")
-            local queue_array=("$@")
-            local json='{"type": "queue", "data": ['
-            for ((i=0; i<${#queue_array[@]}; i++)); do
-                if [[ $i -gt 0 ]]; then
-                    json+=','
-                fi
-                local escaped=$(printf '%s' "${queue_array[i]}" | sed 's/"/\\"/g')
-                json+="\"$escaped\""
-            done
-            json+=']}'
-            echo "$json"
+        "pop"|"dequeue")
+            # Не требует дополнительной валидации
             ;;
-        "error")
-            local message="$1"
-            local code="${2:-1}"
-            echo "{\"error\": \"$message\", \"code\": $code}"
+        "peek"|"front")
+            # Не требует дополнительной валидации
             ;;
-        "success")
-            local message="$1"
-            local data="$2"
-            if [[ -n "$data" ]]; then
-                echo "{\"success\": true, \"message\": \"$message\", \"data\": $data}"
-            else
-                echo "{\"success\": true, \"message\": \"$message\"}"
-            fi
+        "get"|"remove")
+            validator::valid_index "$index" "$size" "Structure"
             ;;
         *)
-            echo "{\"error\": \"Unknown format type: $type\"}"
+            echo "Error: Unknown operation '$operation'" >&2
             return 1
             ;;
     esac
 }
 
-# Форматирование вывода в виде шагов
-formatter::steps() {
-    local title="$1"
-    shift
-    local steps=("$@")
-    
-    echo "📋 $title"
-    echo "────────────────────"
-    
-    for ((i=0; i<${#steps[@]}; i++)); do
-        echo "$((i+1)). ${steps[i]}"
-    done
-    echo
-}
-
-# Форматирование прогресс-бара
-formatter::progress() {
-    local current="$1"
-    local total="$2"
-    local width="${3:-50}"
-    
-    local percentage=$((current * 100 / total))
-    local filled=$((current * width / total))
-    local empty=$((width - filled))
-    
-    printf "\r["
-    printf "%${filled}s" | tr ' ' '='
-    printf "%${empty}s" | tr ' ' ' '
-    printf "] %3d%%" "$percentage"
-    
-    if [[ $current -eq $total ]]; then
-        echo
-    fi
-}
-
-# Цветное форматирование
-formatter::color() {
-    local color="$1"
-    local text="$2"
-    
-    case "$color" in
-        "red") echo -e "\033[0;31m${text}\033[0m" ;;
-        "green") echo -e "\033[0;32m${text}\033[0m" ;;
-        "yellow") echo -e "\033[1;33m${text}\033[0m" ;;
-        "blue") echo -e "\033[0;34m${text}\033[0m" ;;
-        "purple") echo -e "\033[0;35m${text}\033[0m" ;;
-        "cyan") echo -e "\033[0;36m${text}\033[0m" ;;
-        *) echo "$text" ;;
-    esac
-}
-
 # Экспорт функций
-export -f formatter::table formatter::json formatter::steps
-export -f formatter::progress formatter::color
+export -f validator::not_empty validator::is_number validator::is_positive_number
+export -f validator::valid_index validator::file_exists validator::file_readable
+export -f validator::is_valid_json validator::command_exists validator::bash_version
+export -f validator::data_structure_params

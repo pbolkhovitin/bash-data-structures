@@ -28,7 +28,13 @@ stack::init() {
     STACK_POINTER=0
     STACK_INITIALIZED=true
     
-    logger::init "stack"
+    # Пробуем инициализировать логгер, если не получается - используем временную директорию
+    if ! logger::init "stack"; then
+        export LOG_DIR="/tmp/bash-ds-logs"
+        mkdir -p "$LOG_DIR" 2>/dev/null
+        logger::init "stack"
+    fi
+    
     logger::info "Stack initialized" "stack"
     return 0
 }

@@ -1,5 +1,3 @@
-```
-
 ## 📚 API_REFERENCE.md
 
 ```markdown

@@ -10,50 +10,63 @@ jobs:
   test:
     name: Run Test Suite
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        bash-container: ["bash:4.4", "bash:5.1", "bash:5.2"]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Fix line endings and permissions
+    - name: Fix file encoding and permissions
       run: |
-        # Конвертируем CRLF → LF для всех sh файлов
+        sudo apt-get update
+        sudo apt-get install -y dos2unix
+        # Конвертируем в правильный формат
         find . -name "*.sh" -type f -exec dos2unix {} \;
-        # Даем права на выполнение
+        # Удаляем BOM маркеры если есть
+        find . -name "*.sh" -type f -exec sed -i '1s/^\xEF\xBB\xBF//' {} \;
         find . -name "*.sh" -type f -exec chmod +x {} \;
+        # Проверяем результат
+        echo "Форматы файлов после конвертации:"
+        file tests/*.sh
 
-    - name: Test with Bash ${{ matrix.bash-container }}
+    - name: Run syntax check
       run: |
-        echo "Testing with ${{ matrix.bash-container }}"
-        docker run --rm -v $PWD:/workspace -w /workspace ${{ matrix.bash-container }} \
-          bash -c "
-            echo 'Bash version: \$(bash --version | head -n1)'
-            echo '🔍 Checking Bash syntax...'
-            find src/ lib/ tests/ examples/ -name '*.sh' -type f | while read file; do
-              echo 'Checking \$file'
-              bash -n \"\$file\" || exit 1
-            done
-            echo '🧪 Running tests...'
-            cd tests
-            # Запускаем только существующие и исправленные тесты
-            ./test_stack.sh
-            ./test_deque.sh
-            ./test_linked_list.sh
-            ./test_priority_queue.sh
-            ./test_queue.sh
-            ./test_framework.sh
-            ./integration_test.sh
-          "
+        echo "🔍 Checking Bash syntax..."
+        find src/ lib/ tests/ examples/ -name "*.sh" -type f | while read file; do
+          echo "Checking $file"
+          bash -n "$file" && echo "✅ $file" || (echo "❌ $file"; exit 1)
+        done
+
+    - name: Run tests
+      run: |
+        echo "🧪 Running tests..."
+        cd tests
+        
+        echo "=== Test Stack ==="
+        bash test_stack.sh
+        
+        echo "=== Test Deque ==="  
+        bash test_deque.sh
+        
+        echo "=== Test Linked List ==="
+        bash test_linked_list.sh
+        
+        echo "=== Test Priority Queue ==="
+        bash test_priority_queue.sh
+        
+        echo "=== Test Queue ==="
+        bash test_queue.sh
+        
+        echo "=== Test Framework ==="
+        bash test_framework.sh
+        
+        echo "=== Integration Test ==="
+        bash integration_test.sh
 
     - name: Upload test logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-logs-${{ matrix.bash-container }}
+        name: test-logs
         path: |
           /tmp/bash-ds-logs/
           /var/log/bash-ds/

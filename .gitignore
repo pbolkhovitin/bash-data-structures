@@ -1,0 +1,133 @@
+# .gitignore для Bash Data Structures Project
+
+# =====================
+# Системные файлы
+# =====================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.\#*
+\#*#
+
+# =====================
+# Логи и временные файлы
+# =====================
+*.log
+*.log.*
+logs/
+/tmp/
+/var/log/bash-ds/
+/tmp/bash-ds-logs/
+
+# Автоматически создаваемые логи стека
+stack.log
+stack.log.*
+queue.log
+deque.log
+linked_list.log
+priority_queue.log
+
+# =====================
+# Файлы IDE и редакторов
+# =====================
+.vscode/
+.idea/
+*.code-workspace
+
+# =====================
+# Бенчмарки и тестовые данные
+# =====================
+benchmarks/results/
+benchmarks/output/
+*.bench
+*.profile
+*.perf
+
+# Временные файлы тестов
+test_*.tmp
+*.testdata
+/tmp/test_*
+
+# =====================
+# Дистрибуция и сборка
+# =====================
+/dist/
+/build/
+/pkg/
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+
+# Артефакты установки
+install.sh
+uninstall.sh
+
+# =====================
+# Документация (сгенерированная)
+# =====================
+docs/_build/
+docs/site/
+*.1
+*.man
+
+# =====================
+# Кэш и служебные файлы
+# =====================
+.cache/
+.installed_files
+.dependency_cache
+tree.txt
+
+# =====================
+# Файлы окружения и конфигурации
+# =====================
+.env
+.env.local
+.env.*.local
+config.local.sh
+settings.local
+
+# =====================
+# Резервные копии
+# =====================
+*.bak
+*.backup
+*.old
+
+# =====================
+# Специфичные для проекта
+# =====================
+# Временные файлы данных стека/очереди
+*_data.txt
+*_export.txt
+*_backup.txt
+
+# Файлы состояний
+*.state
+*.lock
+
+# =====================
+# GitHub и CI/CD
+# =====================
+!.github/workflows/
+.github/workflows/*.tmp
+.gh-pages/
+
+# =====================
+# Прочие
+# =====================
+*.pid
+*.socket
+*.sock
+*.pid.lock
+
+# Исключения (явно включаем нужные директории)
+!examples/**/*.sh
+!tests/**/*.sh
+!benchmarks/**/*.sh
+!utils/**/*.sh
+!src/**/*.sh
+!lib/**/*.sh

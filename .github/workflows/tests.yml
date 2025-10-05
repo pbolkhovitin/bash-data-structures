@@ -13,59 +13,37 @@ jobs:
     
     strategy:
       matrix:
-        bash-version: [4.4, 5.1, 5.2]
+        # Используем доступные версии через оболочки Docker
+        bash-container: ["bash:4.4", "bash:5.1", "bash:5.2"]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Bash ${{ matrix.bash-version }}
+    - name: Test with Bash ${{ matrix.bash-container }}
       run: |
-        sudo apt-get update
-        sudo apt-get install -y bash-${{ matrix.bash-version }}
-
-    - name: Show environment info
-      run: |
-        echo "Bash version: $(bash --version | head -n1)"
-        echo "OS: $(uname -a)"
-        echo "Working directory: $(pwd)"
-
-    - name: Make scripts executable
-      run: |
-        find . -name "*.sh" -type f -exec chmod +x {} \;
-        ls -la src/ lib/ tests/
-
-    - name: Run syntax checking
-      run: |
-        echo "🔍 Checking Bash syntax..."
-        find src/ lib/ tests/ examples/ -name "*.sh" -type f | while read file; do
-          echo "Checking $file"
-          bash -n "$file" || exit 1
-        done
-
-    - name: Run stack tests
-      run: |
-        echo "🧪 Testing stack implementation..."
-        cd tests
-        ./test_stack.sh
-
-    - name: Run framework tests
-      run: |
-        echo "🧪 Testing framework components..."
-        cd tests
-        ./test_framework.sh
-
-    - name: Run integration tests
-      run: |
-        echo "🔗 Running integration tests..."
-        cd tests
-        ./integration_test.sh
+        echo "Testing with ${{ matrix.bash-container }}"
+        docker run --rm -v $PWD:/workspace -w /workspace ${{ matrix.bash-container }} \
+          bash -c "
+            echo 'Bash version: $(bash --version | head -n1)'
+            find . -name '*.sh' -type f -exec chmod +x {} \;
+            echo '🔍 Checking Bash syntax...'
+            find src/ lib/ tests/ examples/ -name '*.sh' -type f | while read file; do
+              echo 'Checking \$file'
+              bash -n \"\$file\" || exit 1
+            done
+            echo '🧪 Running tests...'
+            cd tests
+            ./test_stack.sh
+            ./test_framework.sh
+            ./integration_test.sh
+          "
 
     - name: Upload test logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-logs-${{ matrix.bash-version }}
+        name: test-logs-${{ matrix.bash-container }}
         path: |
           /tmp/bash-ds-logs/
           /var/log/bash-ds/

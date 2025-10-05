@@ -108,6 +108,16 @@ stack::pop() {
     return 0
 }
 
+# Новая функция для безопасного получения извлеченного элемента
+stack::get_popped_element() {
+    if [[ $STACK_POINTER -eq 0 ]]; then
+        echo ""
+        return 1
+    fi
+    echo "${STACK[$STACK_POINTER]}"
+    return 0
+}
+
 # Просмотр верхнего элемента
 stack::peek() {
     if ! stack::is_initialized; then

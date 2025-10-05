@@ -44,8 +44,7 @@ jobs:
             ./test_deque.sh
             ./test_linked_list.sh
             ./test_priority_queue.sh
-            # test_queue.sh временно отключен из-за ошибки
-            # ./test_queue.sh
+            ./test_queue.sh
             ./test_framework.sh
             ./integration_test.sh
           "

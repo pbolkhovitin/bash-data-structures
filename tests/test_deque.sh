@@ -2,6 +2,12 @@
 
 # test_deque.sh - Комплексное тестирование реализации двусторонней очереди
 
+# Проверка зависимостей
+if [[ ! -f "../lib/tester.sh" ]] || [[ ! -f "../src/deque.sh" ]]; then
+    echo "❌ Ошибка: Не найдены необходимые файлы"
+    exit 1
+fi
+
 source ../lib/tester.sh
 source ../src/deque.sh
 
@@ -104,7 +110,7 @@ it "Deque как стек (использование только одного 
 deque_api init
 # Используем только rear операции как стек
 deque_api add_rear "push1"
-deque_api add_rear "push2")
+deque_api add_rear "push2"
 deque_api add_rear "push3"
 
 pop1=$(deque_api remove_rear)
@@ -172,7 +178,7 @@ describe "Специфичные для Deque тесты"
 
 it "Порядок элементов при сложных операциях"
 deque_api init
-deque_api add_front "A")
+deque_api add_front "A"
 deque_api add_rear "B"
 deque_api add_front "C"
 deque_api add_rear "D"

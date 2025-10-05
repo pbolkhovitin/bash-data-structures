@@ -114,6 +114,8 @@ settings.local
 # =====================
 !.github/workflows/
 .github/workflows/*.tmp
+.github/workflows/benchmarks.yml
+.github/workflows/release.yml
 .gh-pages/
 
 # =====================

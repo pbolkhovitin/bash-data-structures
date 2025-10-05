@@ -100,7 +100,7 @@ queue_api init
 queue_api enqueue "A"
 queue_api enqueue "B"
 dequeue1=$(queue_api dequeue)
-queue_api enqueue "C")
+queue_api enqueue "C"
 queue_api enqueue "D"
 dequeue2=$(queue_api dequeue)
 dequeue3=$(queue_api dequeue)

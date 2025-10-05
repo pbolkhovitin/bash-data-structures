@@ -48,13 +48,7 @@ stack::init() {
     STACK_POINTER=0
     STACK_INITIALIZED=true
     
-    # Пробуем инициализировать логгер, если не получается - используем временную директорию
-    if ! logger::init "stack"; then
-        export LOG_DIR="/tmp/bash-ds-logs"
-        mkdir -p "$LOG_DIR" 2>/dev/null
-        logger::init "stack"
-    fi
-    
+    logger::init "stack"
     logger::info "Stack initialized" "stack"
     return 0
 }
@@ -103,7 +97,7 @@ stack::pop() {
     logger::debug "POP: '$element' (size: $STACK_POINTER)" "stack"
     
     # Сохраняем элемент в глобальной переменной для последующего получения
-    STACK_LAST_POPPED="$element"
+    # STACK_LAST_POPPED="$element"
     echo "$element"  # Для обратной совместимости
     return 0
 }
@@ -410,7 +404,7 @@ stack::api() {
 # =============================================================================
 
 stack::test() {
-    source "$(dirname "${BASH_SOURCE[0]}")/../lib/tester.sh"
+    source "${PROJECT_ROOT}/lib/tester.sh"
     
     describe "Stack Implementation Tests"
     

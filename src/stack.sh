@@ -102,20 +102,20 @@ stack::pop() {
     
     logger::debug "POP: '$element' (size: $STACK_POINTER)" "stack"
     
-    # Возвращаем элемент ЧЕРЕЗ STDOUT, но с предварительным сохранением
-    # Это решает проблему многократного вызова в подстановке команд
-    printf '%s' "$element"
+    # Сохраняем элемент в глобальной переменной для последующего получения
+    STACK_LAST_POPPED="$element"
+    echo "$element"  # Для обратной совместимости
     return 0
 }
 
-# Новая функция для безопасного получения извлеченного элемента
-stack::get_popped_element() {
-    if [[ $STACK_POINTER -eq 0 ]]; then
-        echo ""
+# Функция для получения последнего извлеченного элемента
+stack::get_last_popped() {
+    if [[ -n "$STACK_LAST_POPPED" ]]; then
+        echo "$STACK_LAST_POPPED"
+        return 0
+    else
         return 1
     fi
-    echo "${STACK[$STACK_POINTER]}"
-    return 0
 }
 
 # Просмотр верхнего элемента
